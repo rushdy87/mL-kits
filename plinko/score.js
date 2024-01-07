@@ -1,4 +1,6 @@
 const outputs = [];
+const k = 10;
+const features = ['drop Position', 'bounciness', 'ball size'];
 
 function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
   // Ran every time a balls drops into a bucket
@@ -7,18 +9,24 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 
 function runAnalysis() {
   const testSetSize = 200;
-  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
 
-  _.range(1, 20).forEach((k) => {
+  _.range(0, 3).forEach((feature) => {
+    // range(0, 3) ==> [0, 1, 2]
+
+    const data = _.map(outputs, (row) => [row[feature], _.last(row)]);
+
+    const [testSet, trainingSet] = splitDataset(minMax(data, 1), testSetSize);
+
     const accuracy = _.chain(testSet)
       .filter(
-        (testPint) => knn(trainingSet, _.initial(testPint), k) === testPint[3]
+        (testPint) =>
+          knn(trainingSet, _.initial(testPint), k) === _.last(testPint)
       )
       .size()
       .divide(testSetSize)
       .value();
 
-    console.log(`For k of ${k}, the accuracy is: ${accuracy}`);
+    console.log(`For ${features[feature]}, the accuracy is: ${accuracy}`);
   });
 }
 
