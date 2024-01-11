@@ -10,3 +10,35 @@ In the context of machine learning and TensorFlow, "shape" refers to the dimensi
 <p>
 An element-wise operation, also known as element-wise computation or element-wise transformation, is a mathematical operation performed independently on each element of a data structure, such as a vector, matrix, or tensor. In the context of machine learning and numerical computing, element-wise operations are commonly used when working with arrays or tensors to apply a specific operation or function to every individual element of the data structure.
 </p>
+<code>
+const features = tf.tensor([
+	[-121, 47], //[lat, long]
+  [-121.2, 46.5],
+  [-122, 46.4],
+  [-120.9, 46.7]
+]);
+
+const labels = tf.tensor([
+[200],
+[250],
+[215],
+[240]
+]);
+
+const productionPoint = tf.tensor([-121, 47]);
+
+const k = 2;
+
+features
+.sub(productionPoint)
+.pow(2) //power
+.sum(1)
+.pow(0.5)
+.expandDims(1) //Inserts a dimension of 1 into a tensor's shape.
+.concat(labels, 1)
+.unstack() //convert the tensor normal js array of tensors
+//From her we will deal with a normal javascript array
+.sort((a, b) => a.get(0) > b.get(0) ? 1 : -1)
+.slice(0, k)
+.reduce((acc, pair) => acc + pair.get(1), 0) / k
+</code>
