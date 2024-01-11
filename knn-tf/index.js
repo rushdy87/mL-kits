@@ -4,9 +4,15 @@ const tf = require('@tensorflow/tfjs');
 const loadCSV = require('./load-csv');
 
 function knn(features, labels, productionPoint, k) {
+  const { mean, variance } = tf.moments(features, 0);
+
+  const scaledProduction = productionPoint.sub(mean).div(variance.pow(0.5));
+
   return (
     features
-      .sub(productionPoint)
+      .sub(mean)
+      .div(variance.pow(0.5))
+      .sub(scaledProduction)
       .pow(2)
       .sum(1)
       .pow(0.5)
@@ -24,7 +30,7 @@ let { features, labels, testFeatures, testLabels } = loadCSV(
   {
     shuffle: true,
     splitTest: 10,
-    dataColumns: ['lat', 'long'],
+    dataColumns: ['lat', 'long', 'sqft_lot'],
     labelColumns: ['price'],
   }
 );
@@ -32,6 +38,14 @@ let { features, labels, testFeatures, testLabels } = loadCSV(
 features = tf.tensor(features);
 labels = tf.tensor(labels);
 
-const result = knn(features, labels, tf.tensor(testFeatures[0]), 10);
+testFeatures.forEach((testPoint, index) => {
+  const result = knn(features, labels, tf.tensor(testPoint), 10);
 
-console.log(`Guess is: ${result}, and an actual value is: ${testLabels[0]} `);
+  const err = (testLabels[index][0] - result) / testLabels[index][0];
+
+  console.log(
+    `Guess is: ${result}, and an actual value is: ${
+      testLabels[index][0]
+    }. The Error Percentage is: ${(Math.abs(err) * 100).toFixed(3)}`
+  );
+});
